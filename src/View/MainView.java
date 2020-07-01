@@ -12,7 +12,6 @@ import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.*;
 
-import Controller.DBHelper;
 import Controller.Editor;
 import Controller.IOOperator;
 import Controller.UserController;
@@ -20,14 +19,9 @@ import Model.Model;
 import Model.Note;
 import Model.NoteBook;
 import Model.User;
-import application.UserManager;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.Dialog;
-import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -45,8 +39,6 @@ public class MainView extends View implements MainViewInterface
 {
 	@FXML Button newButton, importButton,
 				exportButton, notebookButton, searchButton;
-	@FXML MenuItem importMenuItem, exportMenuItem, newMenuItem, 
-				noteBookMenuItem, aboutMenuItem;
 	
 	@FXML NoteView noteviewController;
 	@FXML VBox root;
@@ -54,7 +46,8 @@ public class MainView extends View implements MainViewInterface
 	@Override
 	public void initialize(URL location, ResourceBundle resources)
 	{
-		model = UserManager.user;
+		model = new User();
+		model.initialize();
 		controller = new UserController(model, this);
 		model.addPropertyChangeListener(this);
 		
@@ -62,10 +55,24 @@ public class MainView extends View implements MainViewInterface
 		noteviewController.setCurrentUser((User)model);
 	}
 	
+	private User readUserInfo(String Account)
+	{
+		try
+		{
+			return (User)IOOperator.deserialize(".\\outputFile\\" 
+					+ Account +".user");
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
 	@Override
 	public void propertyChange(PropertyChangeEvent evt)
 	{
-		
+
 	}
 	
 	// button事件
@@ -85,16 +92,7 @@ public class MainView extends View implements MainViewInterface
 			File choosedFile = IOOperator.ChooseFile(importButton.getScene().getWindow(), "Note");
 			String path = choosedFile.getAbsolutePath();
 			Note importNote = (Note)IOOperator.deserialize(path);
-			
-			// 防止出现重id的bug
-			Note importNoteCopy = new Note();
-			importNoteCopy.setAlert(importNote.getAlert());
-			importNoteCopy.setContent(importNote.getContent());
-			importNoteCopy.setLabels(importNote.getLabels());
-			importNoteCopy.setTitle(importNote.getTitle());
-			
-			//
-	        noteviewController.updateNote(importNoteCopy);
+	        noteviewController.updateNote(importNote);
 		}
 		catch (Exception e)
 		{
@@ -144,38 +142,24 @@ public class MainView extends View implements MainViewInterface
 	@FXML 
 	private void searchButtonPressAction()
 	{
-		TextInputDialog dialog = new TextInputDialog("search text here");
-		dialog.setTitle("Search");
-		dialog.setHeaderText("");
-		dialog.setContentText("pls input search text below:");
-		Optional<String> result = dialog.showAndWait();
-
-		result.ifPresent(text -> 
-			noteviewController.allBookViewSearch(text));
-	}
-	
-	@FXML
-	private void aboutMenuAction()
-	{
-		Alert alert = new Alert(AlertType.INFORMATION);
-		alert.setTitle("About");
-		alert.setHeaderText("");
-		alert.setContentText("Here's MyNote, bitchs");
-
-		alert.showAndWait();
+		
 	}
 
-	// 关闭时存入数据库
+	// 关闭时序列化
 	@Override
 	public void setCloseWindowEvent(Stage primaryStage)
 	{
 		primaryStage.setOnCloseRequest((WindowEvent event) ->
 		{
-			noteviewController.refreshRemind();
-			DBHelper db = new DBHelper();
-			db.updateUser(UserManager.user);
-			//IOOperator.serialize(".\\outputFile\\" 
-						//+ ((User)model).getAccount()+".user", model);
+			try
+			{
+				IOOperator.serialize(".\\outputFile\\" 
+							+ ((User)model).getAccount()+".user", model);
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
 			System.exit(0);
 		});
 	}

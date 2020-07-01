@@ -9,15 +9,11 @@ public class ListItem extends ListCell<Note>
     public void updateItem(Note note, boolean empty)
     {
         super.updateItem(note,empty);
-        if (note != null && !empty)
+        if(note != null)
         {
             ItemView data = new ItemView();
             data.setInfo(note);
             setGraphic(data.getBox());
-        }
-        else
-        {
-        	setGraphic(null);
         }
     }
 }

@@ -1,78 +1,71 @@
 package Model;
 
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.Serializable;
+import java.net.URL;
 import java.util.*;
 
-import application.DeepCopy;
+import Controller.IOOperator;
 
 public class NoteContent extends Model
 {
-	private String title;
+	// text甚至能直接存图片，因为现在图片都是base64
 	private String text;
-	private ArrayList<Picture> pics;
 	private ArrayList<Attachment> attachs;
 	private ArrayList<Audio> audios;
-	
-	public NoteContent()
+
+	@Override
+	public void initialize()
 	{
-		pics = new ArrayList<>();
-		attachs = new ArrayList<>();
-		audios = new ArrayList<>();
+		attachs = new ArrayList<Attachment>();
+		audios = new ArrayList<Audio>();
+		text = "";
 	}
 	
 	// getters
-	public String getTitle()
-	{
-		return title;
-	}
-	
-	// TODO:没想好怎么处理文字内容，比如要不要分段记，图片的插入位置
 	public String getText()
 	{
 		return text;
 	}
 	
-	public ArrayList<Picture> getPics()
-	{
-		return pics;
-	}
-	
 	public ArrayList<Attachment> getAttachs()
 	{
-		return attachs;
+		return new ArrayList<Attachment>(this.attachs);
 	}
 	
 	public ArrayList<Audio> getAudios()
 	{
-		return audios;
+		return new ArrayList<Audio>(this.audios);
 	}
 	
 	// setter
-	public void setTitle(String title)
-	{
-		this.title = title;
-	}
-	
 	public void setText(String text)
 	{
+		observer.firePropertyChange("text", null, text);
 		this.text = text;
 	}
 	
-	public void setPics(ArrayList<Picture> pics)
+	public int addAttachs(String base64data)
 	{
-		this.pics = (ArrayList<Picture>)DeepCopy.deepCopy(pics);
+		Attachment attach = new Attachment(base64data);
+		attachs.add(attach);
+		return attach.getId();
 	}
 	
-	public void setAttachs(ArrayList<Attachment> attachs)
+	public int addAudio(String base64data)
 	{
-		this.attachs = (ArrayList<Attachment>)DeepCopy.deepCopy(attachs);
+		Audio audio = new Audio(base64data);
+		audios.add(audio);
+		return audio.getId();
 	}
 	
-	public void setAudios(ArrayList<Audio> audios)
+	// TODO : 完善这部分
+	public void deleteContentFile()
 	{
-		this.audios = (ArrayList<Audio>)DeepCopy.deepCopy(audios);
+		
 	}
-
+	
 	@Override
 	public void addPropertyChangeListener(PropertyChangeListener listener)
 	{
@@ -84,28 +77,66 @@ public class NoteContent extends Model
 	{
 		observer.removePropertyChangeListener(listener);
 	}
-
+	
 	@Override
-	public void initialize()
+	public NoteContent clone()
 	{
-		// TODO Auto-generated method stub
-		
+		NoteContent clone = new NoteContent();
+		clone.initialize();
+		clone.setText(getText());
+		clone.attachs = attachs;
+		clone.audios = audios;
+		return clone;
+	}
+}
+
+/**
+ * 
+ * @author 18069
+ * 要实现存base64，将base4存为已知地址的本地文件并返回uri
+ * 要求在htmleditor中显示时，pic返回自己的uri，附件和音频返回
+ */
+abstract class ContentFile
+{
+	// 记id，方便查找
+	private static int cnt = 0;
+	protected final int id = cnt++;
+	
+	protected String base64data;
+	
+	protected int getId()
+	{
+		return id;
 	}
 	
+	protected ContentFile(String base64)
+	{
+		this.base64data = base64;
+	}
+	// 转化为file并返回
+	public File download(String path)
+	{
+		return null;
+	}
+	
+	protected String getFile()
+	{
+		return base64data;
+	}
 }
 
-// TODO 
-class Picture
+class Attachment extends ContentFile
 {
-	
+	public Attachment(String base64)
+	{
+		super(base64);
+	}
 }
 
-class Attachment
+class Audio extends ContentFile
 {
-	
-}
-
-class Audio
-{
-	
+	public Audio(String base64)
+	{
+		super(base64);
+	}
 }

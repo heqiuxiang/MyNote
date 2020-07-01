@@ -1,21 +1,32 @@
 package Model;
 
 import java.beans.PropertyChangeListener;
+import java.io.Serializable;
 import java.util.*;
 
-import application.DeepCopy;
-
-public class User extends Model
+public class User extends Model implements Serializable
 {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 3970064337768928245L;
 	private String account;
 	private String password;
-	private List<NoteBook> noteBooks;
+	private ArrayList<NoteBook> noteBooks;
 	
 	@Override
 	public void initialize()
 	{
-		// TODO Auto-generated method stub
+		// 每个用户初始笔记本：defaultBook
+		NoteBook defaultBook = new NoteBook();
+		defaultBook.initialize();
+		defaultBook.setName("defaultBook");
 		
+		NoteBook Book1 = new NoteBook();
+		Book1.initialize();
+		Book1.setName("Book1");
+		
+		noteBooks = new ArrayList<NoteBook>(Arrays.asList(defaultBook, Book1));
 	}
 	
 	// getter
@@ -29,25 +40,37 @@ public class User extends Model
 		return password;
 	}
 	
-	public List<NoteBook> getNoteBooks()
+	public ArrayList<NoteBook> getNoteBooks()
 	{
-		return noteBooks;
+		return new ArrayList<NoteBook>(noteBooks);
 	}
 	
 	// setter
 	public void setAccount(String account)
 	{
+		observer.firePropertyChange("new account", this.account, account);
 		this.account = account;
 	}
 	
 	public void setPassword(String password)
 	{
+		observer.firePropertyChange("new password", this.password, password);
 		this.password = password;
 	}
 	
-	public void setNoteBooks(List<NoteBook> noteBooks)
+	public void setNoteBooks(ArrayList<NoteBook> noteBooks)
 	{
-		this.noteBooks = (List<NoteBook>)DeepCopy.deepCopy(noteBooks);
+		// 提示noteview改变
+		ArrayList<String> names = new ArrayList<>();
+		for (NoteBook noteBook : noteBooks)
+		{
+			names.add(noteBook.getName());
+		}
+//		observer.firePropertyChange("noteBookNamesChanged", null, names);
+		
+		// TODO:
+		observer.firePropertyChange("new noteBooks", null, names);
+		this.noteBooks = new ArrayList<NoteBook>(noteBooks);
 	}
 
 	@Override
@@ -60,5 +83,11 @@ public class User extends Model
 	public void removePropertyChangeListener(PropertyChangeListener listener)
 	{
 		observer.removePropertyChangeListener(listener);
+	}
+
+	@Override
+	public User clone()
+	{
+		throw new RuntimeException("can't clone anyone's data");
 	}
 }

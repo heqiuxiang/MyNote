@@ -5,21 +5,17 @@ import View.ListView.ItemView;
 import javafx.scene.control.Cell;
 import javafx.scene.control.ListCell;
 
-public class RemindItem extends ListCell<Remind>
+public class RemindItem extends ListCell<Note>
 {
 	@Override
-    public void updateItem(Remind remind, boolean empty)
+    public void updateItem(Note note, boolean empty)
     {
-        super.updateItem(remind, empty);
-        if(remind != null && !empty)
+        super.updateItem(note,empty);
+        if(note != null)
         {
             RemindView data = new RemindView();
-            data.setInfo(remind);
+            data.setInfo(note);
             setGraphic(data.getBox());
-        }
-        else
-        {
-        	setGraphic(null);
         }
     }
 }

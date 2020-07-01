@@ -27,8 +27,7 @@ interface NoteViewInterface
 	void setCurrentUser(User currentUser);
 	void updateNote(Note note);
 	Note getCurrentNote();
-	void allBookViewSearch(String text);
-	void refreshRemind();
+	
 }
 
 public class NoteView extends View implements CurrentNoteListener, NoteViewInterface
@@ -39,16 +38,14 @@ public class NoteView extends View implements CurrentNoteListener, NoteViewInter
 				doneButton, labelButton;
 	@FXML private ChoiceBox<String> noteBookChooser;
 	private String noteBookChoosed;
-	private String lastnoteBookChoosed;
 	
 	// 用于控制editor以及notebook区域
 	@FXML private EditorView editorviewController;
 	@FXML private AllBookView allbookviewController;
 	
-	private void setNoteBookChoosed(String noteBookName, String lastnoteBookName)
+	private void setNoteBookChoosed(String noteBookName)
 	{
 		noteBookChoosed = noteBookName;
-		lastnoteBookChoosed = lastnoteBookName;
 	}
 	
 	@Override
@@ -159,8 +156,6 @@ public class NoteView extends View implements CurrentNoteListener, NoteViewInter
 				editorviewController.updateContent(false));
 		
 		// 通知对应的notebook添加本note
-		// remove用来换笔记本
-		allbookviewController.removeNoteFromBook(((Note)model).getId(), lastnoteBookChoosed);
 		allbookviewController.addNoteToBook(((Note)model).clone(), noteBookChoosed);
 	}
 	
@@ -204,7 +199,7 @@ public class NoteView extends View implements CurrentNoteListener, NoteViewInter
 	
 	private void initNoteBookChooser()
 	{
-		setNoteBookChoosed("defaultBook", null);
+		setNoteBookChoosed("defaultBook");
 		noteBookChooser.setValue(noteBookChoosed);
 		
 		// 读入笔记本名，并注册笔记本名的监听者
@@ -216,7 +211,7 @@ public class NoteView extends View implements CurrentNoteListener, NoteViewInter
 			@Override
 			public void changed(ObservableValue<? extends String> arg0, String arg1, String arg2)
 			{
-				setNoteBookChoosed((arg2 == null)?arg0.getValue():arg2, arg1);
+				setNoteBookChoosed((arg2 == null)?arg0.getValue():arg2);
 			} 
         }); 
 	}
@@ -238,17 +233,5 @@ public class NoteView extends View implements CurrentNoteListener, NoteViewInter
 	public Note getCurrentNote()
 	{
 		return (Note)model.clone();
-	}
-
-	@Override
-	public void allBookViewSearch(String text)
-	{
-		allbookviewController.search(text);
-	}
-
-	@Override
-	public void refreshRemind()
-	{
-		allbookviewController.removeDoneRemindItem();
 	}
 }
