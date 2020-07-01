@@ -12,6 +12,7 @@ import Model.NoteBook;
 import Model.User;
 import View.ListView.ListItem;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableArray;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
@@ -46,11 +47,10 @@ public class NoteBookView extends View implements NoteListViewInterface
 		// 初始化listview
 		initNoteList();
 	}
-
+	
 	private void initNoteList()
 	{
-		noteList.setItems(FXCollections.observableArrayList(
-				((NoteBook)model).getNotes()));
+		noteList.setItems(FXCollections.observableArrayList(((NoteBook)model).getNotes()));
 		
 		noteList.setCellFactory(new Callback<ListView<Note>, ListCell<Note>>(){
 			@Override
@@ -68,11 +68,10 @@ public class NoteBookView extends View implements NoteListViewInterface
 			return;
 		
 		int noteNameId = noteList.getSelectionModel().getSelectedItem().getId();
-
 		Note choosedNote = findNoteById(noteNameId);
 		
 		// 获得点击的note
-		listObserver.firePropertyChange("listChoosedNoteChanged", null, choosedNote);
+		listObserver.firePropertyChange("listChoosedNoteChanged", null, choosedNote.clone());
 	}
 	
 	@Override
@@ -83,7 +82,7 @@ public class NoteBookView extends View implements NoteListViewInterface
 		{
 		case "new notes":
 			noteList.getItems().clear();
-			noteList.getItems().addAll((ArrayList)evt.getNewValue());
+			noteList.getItems().addAll((ArrayList<Note>)evt.getNewValue());
 			break;
 		}
 	}
@@ -94,7 +93,7 @@ public class NoteBookView extends View implements NoteListViewInterface
 		{
 			if (n.getId() == id)
 			{
-				return n.clone();
+				return n;
 			}
 		}
 		throw new RuntimeException("can't find Note with id: "+id);
@@ -111,7 +110,8 @@ public class NoteBookView extends View implements NoteListViewInterface
 	{
 		return ((NoteBookController)controller).removeNote(id);
 	}
-
+	
+	@Override
 	public void setCurrentNoteBook(NoteBook noteBook)
 	{	
 		model.removePropertyChangeListener(this);
